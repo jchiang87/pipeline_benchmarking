@@ -1,0 +1,46 @@
+includeConfigs:
+  - ${DRP_PIPE_DIR}/bps/resources/LSSTCam/DRP.yaml
+  - ${DRP_PIPE_DIR}/bps/clustering/LSSTCam/DRP-clustering.yaml
+
+LSST_VERSION: ${LSST_VERSION}
+
+pipelineYaml: ${DRP_PIPE_DIR}/pipelines/LSSTCam/DRP.yaml#stage1-single-visit
+
+payload:
+  payloadName: stage1_benchmark_{LSST_VERSION}
+  butlerConfig: /repo/main
+  inCollection: LSSTCam/defaults
+  dataQuery: "instrument='LSSTCam' and skymap='lsst_cells_v1' and exposure in (2025090200191..2025090200257) and exposure.observation_type='science' and detector < 189 and detector not in (0, 20, 27, 65, 123, 161, 168, 188, 122, 169, 187, 120, 158, 30, 68, 1, 19)"
+
+saveGenericWorkflow: true
+
+numberOfRetries: 3
+requestMemory: 4000
+memoryMultiplier: 2
+#extraQgraphOptions: "--dataset-query-constraint raw"
+extraRunQuantumOptions: "--no-raise-on-partial-outputs"
+
+project: stage1_benchmark
+
+wmsServiceClass: lsst.ctrl.bps.parsl.ParslService
+computeSite: slurm_htx
+
+parsl:
+  log_level: WARN
+
+site:
+  local:
+    class: lsst.ctrl.bps.parsl.sites.Local
+    cores: 1
+    monitorEnable: true
+    monitorFilename: runinfo/monitoring.db
+  slurm_htx:
+    class: lsst.ctrl.bps.parsl.sites.Slurm
+    nodes: 3
+    cores_per_node: 120
+    exclusive: true
+    walltime: "01:00:00"
+    scheduler_options: |
+      #SBATCH --partition=torino
+    monitorEnable: true
+    monitorFilename: runinfo/monitoring.db
